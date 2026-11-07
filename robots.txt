@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# AXIBION XML Sitemap
+Sitemap: https://ais-dev-mnnp5qb6ig6iv6bdpesxix-942686129945.asia-southeast1.run.app/sitemap.xml

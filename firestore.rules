@@ -1,0 +1,72 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isVerifiedAdmin() {
+      return isSignedIn() &&
+        request.auth.token.email_verified == true &&
+        (request.auth.token.email == 'myai000121@gmail.com' || request.auth.token.email == 'fk9175679@gmail.com');
+    }
+
+    // Products catalog
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if isVerifiedAdmin() && isValidId(productId);
+    }
+
+    // Categories metadata
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if isVerifiedAdmin() && isValidId(categoryId);
+    }
+
+    // Homepage banners
+    match /banners/{bannerId} {
+      allow read: if true;
+      allow write: if isVerifiedAdmin() && isValidId(bannerId);
+    }
+
+    // Website settings
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if isVerifiedAdmin() && isValidId(settingId);
+    }
+
+    // Admin audit activity logs
+    match /activity_logs/{logId} {
+      allow read, write: if isVerifiedAdmin() && isValidId(logId);
+    }
+
+    // Customer orders
+    match /orders/{orderId} {
+      // Admins can read all orders; customers can ONLY read their own orders
+      allow get: if isVerifiedAdmin() || (isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.email == request.auth.token.email));
+      allow list: if isVerifiedAdmin() || (isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.email == request.auth.token.email));
+
+      // Customer creation of order
+      allow create: if isValidId(orderId) && (
+        (isSignedIn() && request.auth.token.email_verified == true &&
+         request.resource.data.userId == request.auth.uid &&
+         request.resource.data.email == request.auth.token.email &&
+         request.resource.data.paymentMethod == 'Cash on Delivery') ||
+        isVerifiedAdmin()
+      );
+
+      // Only administrators can update order status or delete orders
+      allow update, delete: if isVerifiedAdmin() && isValidId(orderId);
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "AXIBION — A World of Technology",
+  "description": "Premium electronics, technology, mobile gadgets, and ethical hacking & cybersecurity product marketplace.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
